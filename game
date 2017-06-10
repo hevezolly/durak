@@ -1,0 +1,898 @@
+#python 3.6.1
+import random as r
+import sys
+type_of_skill=['heal','dmg']
+type_of_item=['wearpon','equip_top','equip_bot','poution_hp','poution_mp']
+find_something=True
+class Item:
+    lvl=0
+    type='' # wearpon, equip_top, equip_bot, poution_hp, poution_mp
+    power=0
+    name=''
+    cost=0
+#===============
+    def naming(self):
+        wearpon1=['легендарный','ржавый','новый','качественный']
+        wearpon2=['лук','топор','нож','меч','арбалет']
+        equip1=['шляпа','повязка','шлем']
+        equip2=['нагрудник','кольчуга','броник']
+        equip3=['хорошого качества','легендарного типа']
+        if self.type=='wearpon':
+            self.name=wearpon1[r.randint(0,len(wearpon1)-1)]+' '+wearpon2[r.randint(0,len(wearpon2)-1)]
+        if self.type=='equip_top':
+            self.name=equip1[r.randint(0,len(equip1)-1)]+' '+equip3[r.randint(0,len(equip3)-1)]
+        if self.type=='equip_bot':
+            self.name=equip2[r.randint(0,len(equip2)-1)]+' '+equip3[r.randint(0,len(equip3)-1)]
+        if self.type=='poution_hp':
+            self.name='зелье лечения'
+        if self.type=='poution_mp':
+            self.name='зелье восстановления маны'
+#===========
+
+    def creating(self, level, type):
+        self.lvl = level
+        self.type = type
+        if type == 'wearpon':
+            self.power = self.lvl * 2 + r.randint(-1, 2)
+            self.cost = (self.power - self.lvl + 1) * self.lvl * r.randint(30, 60)
+        else:
+            if (type == 'equip_top') or (type == 'equip_bot'):
+                self.power = self.lvl + r.randint(-1, 2)
+                self.cost = (self.power - self.lvl + 10) * self.lvl * r.randint(5, 8)
+            else:
+                self.power = (self.lvl + r.randint(5, 10)) * 4
+                self.cost = (self.power - self.lvl + 1) * self.lvl
+        self.naming()
+
+#==========
+    def copy(self):
+        copyrate=Item()
+        copyrate.lvl=self.lvl
+        copyrate.type=self.type
+        copyrate.power=self.power
+        copyrate.name=self.name
+        copyrate.cost=self.cost
+        return copyrate
+#==========
+    def show(self,hero_lvl):
+        if self.type=='':
+            print('пусто')
+        else:
+            if self.type=='wearpon':
+                if self.lvl>hero_lvl:
+                    print(self.name + ' ' + str(self.power - self.lvl) + '-' + str(self.power + self.lvl)+' '+ str(self.lvl)+' уровня'+' цена: '+str(self.cost),file=sys.stderr)
+                else:
+                    print(self.name+' '+str(self.power-self.lvl)+'-'+str(self.power+self.lvl)+' '+ str(self.lvl)+' уровня'+' цена: '+str(self.cost))
+            else:
+                if self.lvl>hero_lvl:
+                    print(self.name + ' ' + str(self.power)+' '+ str(self.lvl)+' уровня'+' цена: '+str(self.cost),file=sys.stderr)
+                else:
+                    print(self.name+' '+str(self.power)+' '+ str(self.lvl)+' уровня'+' цена: '+str(self.cost))
+pass
+#----------------------------------------------------------------------------------------------------------------
+class Skill:
+    lvl=0
+    type='' ## heal or dmg
+    power=0
+    mana_cost=0
+    name=''
+    cooldown=0
+    max_cooldown=0
+#===============
+    def naming(self):
+        heal1=['выспышка','луч','волна','косание']
+        heal2=['силы','света','здоровья','восстановления']
+        dmg1=['удар','взрыв','копье','волна']
+        dmg2=['смерти','огня','льда','боли']
+        if self.type=='heal':
+            self.name = heal1[r.randint(0, len(heal1) - 1)] + ' ' + heal2[r.randint(0, len(heal2) - 1)]
+        if self.type=='dmg':
+            self.name = dmg1[r.randint(0, len(dmg1) - 1)] + ' ' + dmg2[r.randint(0, len(dmg2) - 1)]
+#============
+    def creating(self,level,type):
+        self.lvl=level
+        self.type=type
+        if self.type=='heal':
+            self.power=(self.lvl+r.randint(5,7))*3
+            self.mana_cost=int((self.power+r.randint(10,20))//2)
+            self.max_cooldown=round(self.power/5)
+        else:
+            self.power=(self.lvl+r.randint(1,3))*2+r.randint(1,3)
+            self.mana_cost=int((self.power+r.randint(10,20))//1.5)
+            self.max_cooldown=round(self.power/2.5)
+        self.naming()
+#=============
+    def show(self,color):
+        if self.type=='':
+            print('пусто',end='')
+        else:
+            if color=='red':
+                print(self.name+' '+str(self.power)+ ' манакост: '+str(self.mana_cost),end='',file=sys.stderr)
+            if color=='blue':
+                print(self.name+' '+str(self.power)+ ' манакост: '+str(self.mana_cost),end='')
+#===========
+    def copy(self):
+        copyrite=Skill()
+        copyrite.lvl=self.lvl
+        copyrite.type=self.type
+        copyrite.power=self.power
+        copyrite.mana_cost=self.mana_cost
+        copyrite.name=self.name
+        copyrite.max_cooldown=self.max_cooldown
+        return(copyrite)
+pass
+
+
+#-----------------------------------------------------------------------------------------------------------
+
+class Hero:
+    lvl=0
+    name=''
+    health=0
+    max_health=0
+    mana=0
+    max_mana=0
+    exp=0
+    gold=0
+    max_exp=100
+    inventory=[]
+    skill_list=[]
+    skill_tree=[]
+    arm=Item()
+    head=Item()
+    body=Item()
+    quest=''
+    quest_counter=0
+#===========
+    def creating_skill_tree(self):
+        self.skill_tree=[]
+        for i in range(10):
+            skill_mass=[]
+            for j in range(r.randint(2, 4)):
+                skill = Skill()
+                skill.creating(i, type_of_skill[r.randint(0, 1)])
+                skill_mass.append(skill)
+            self.skill_tree.append(skill_mass)
+#===========
+    def creating(self,name):
+        self.name=name
+        self.lvl=1
+        self.max_health=self.lvl*20
+        self.health=self.max_health
+        self.max_mana=self.lvl*100
+        self.mana=self.max_mana
+        self.arm.name='бесполезный нож'
+        self.arm.type='wearpon'
+        self.arm.lvl=1
+        self.arm.power=2
+        self.creating_skill_tree()
+        for i in range(3):
+            skill=Skill()
+            self.skill_list.append(skill)
+        for i in range(5):
+            item=Item()
+            self.inventory.append(item)
+        self.choosing_skill()
+#============
+    def show(self):
+        print(str(self.name)+' '+str(self.lvl)+' уровень:')
+        print('опыт: '+str(self.exp)+'/'+str(self.max_exp))
+        print('голда: '+str(self.gold))
+        print('здоровье: '+str(self.health))
+        print('мана: '+str(self.mana))
+        print('в руке: ', end='')
+        if self.arm.type!='':
+            self.arm.show(self.lvl)
+        else:
+            print('кулак 1-1')
+        print('на голове: ', end='')
+        self.head.show(self.lvl)
+        print('на теле: ', end='')
+        self.body.show(self.lvl)
+        print('способности:')
+        for i in range(len(self.skill_list)):
+            if (self.mana<self.skill_list[i].mana_cost) or (self.skill_list[i].type=='heal' and self.health==self.max_health) or self.skill_list[i].cooldown!=0 :
+                print(str(i+1)+' ',end='',file=sys.stderr)
+                self.skill_list[i].show('red')
+                if self.skill_list[i].type!='':
+                    print(' кулдаун: '+str(self.skill_list[i].cooldown),file=sys.stderr)
+                else:
+                    print()
+            else:
+                print(str(i + 1) + ' ', end='')
+                self.skill_list[i].show('blue')
+                if self.skill_list[i].type!='':
+                    print(' кулдаун: '+str(self.skill_list[i].cooldown))
+                else:
+                    print()
+        print('инвентарь:')
+        for i in range(len(self.inventory)):
+            print(str(i+1+len(self.skill_list)) + ' ', end='')
+            self.inventory[i].show(self.lvl)
+        if self.quest=='':
+            print('нет задания')
+        else:
+            print('необходимо убить еще '+ str(self.quest_counter)+' ' + self.quest)
+#================
+    def show_tree(self):
+        for i in range(len(self.skill_tree)):
+            print(str(i+1)+' ',end='')
+            if self.lvl!=i+1:
+                for j in range(len(self.skill_tree[i])):
+                    print(str(j+1)+') ',end='')
+                    self.skill_tree[i][j].show('blue')
+                    print(' кулдаун: '+str(self.skill_tree[i][j].max_cooldown)+' ',end='')
+            else:
+                for j in range(len(self.skill_tree[i])):
+                    print(str(j+1) + ') ', end='',file=sys.stderr)
+                    self.skill_tree[i][j].show('red')
+                    print(' кулдаун: '+str(self.skill_tree[i][j].max_cooldown)+' ', end='',file=sys.stderr)
+            print()
+#====================
+
+    def choosing_skill(self):
+        print('выберите способность')
+        self.show_tree()
+        print()
+        mass = []
+        for i in range(len(self.skill_tree[self.lvl-1])):
+            mass.append(i + 1)
+        action1 = action(mass) - 1
+        self.show()
+        mass = []
+        for i in range(len(self.skill_list)):
+            mass.append(i + 1)
+        print('выберите ячейку')
+        action2 = action(mass) - 1
+        self.skill_list[action2] = self.skill_tree[self.lvl - 1][action1].copy()
+        self.show()
+        print()
+
+#=========
+    def lvl_up(self):
+        self.lvl+=1
+        print('ваш уровень повышен, теперь он равен '+str(self.lvl))
+        self.exp=0
+        self.max_health+=10
+        self.health=self.max_health
+        self.max_mana+=50
+        self.mana=self.max_mana
+        self.max_exp*=2
+        self.max_exp+=10
+        print('выберите способность')
+        self.choosing_skill()
+pass
+#----------------------------------------------------------------------------------------------------------------------------
+class Enemy:
+    name=''
+    health=0
+    max_health=0
+    lvl=0
+    exp=0
+    arm=Item()
+    head=Item()
+    body=Item()
+    inventory=Item()
+    loot=Item()
+    gold=0
+    clas=''
+#==============
+    def naming(self):
+        enemy1=['злобный','дикий','неудержимый','мягкосердечный','агрессивный','спокойный']
+        enemy2=['орк','гоблин','огр','хоббит','слизень']
+        enemy3=['ледяного пика','железных гор','пылающего легиона','огненного клинка','кровавого копыта']
+        self.clas=enemy2[r.randint(0,len(enemy2)-1)]
+        self.name=enemy1[r.randint(0,len(enemy1)-1)]+' '+self.clas+' '+enemy3[r.randint(0,len(enemy3)-1)]
+#==========
+    def creating(self,level):
+        self.naming()
+        if level==1:
+            self.lvl=level
+        else:
+            self.lvl=level+r.randint(-1,1)
+        self.gold=10*self.lvl+r.randint(-5*self.lvl,5*self.lvl)
+        self.health=self.lvl*10+r.randint(-5,5)
+        self.max_health=self.health
+        self.exp=self.lvl*30
+        if self.lvl==1:
+            self.arm.creating(self.lvl + r.randint(0, 1), 'wearpon')
+            if self.lvl!=1:
+                self.head.creating(self.lvl + r.randint(-1, 1), 'equip_top')
+                self.body.creating(self.lvl + r.randint(-1, 1), 'equip_bot')
+            else:
+                self.head.creating(self.lvl + r.randint(0, 1), 'equip_top')
+                self.body.creating(self.lvl + r.randint(0, 1), 'equip_bot')
+            self.inventory.creating(self.lvl + r.randint(0, 1), type_of_item[r.randint(3, 4)])
+        else:
+            self.arm.creating(self.lvl+r.randint(-1,1),'wearpon')
+            self.head.creating(self.lvl+r.randint(-1,1),'equip_top')
+            self.body.creating(self.lvl+r.randint(-1,1),'equip_bot')
+            self.inventory.creating(self.lvl+r.randint(0,1),type_of_item[r.randint(3,4)])
+        chance=r.randint(1,6)
+        if chance==1:
+            self.loot=self.arm.copy()
+        if chance==2:
+            self.loot=self.head.copy()
+        if chance==3:
+            self.loot=self.body.copy()
+        if chance==4:
+            self.loot=self.inventory.copy()
+#============
+    def show(self):
+        print(self.name+': '+str(self.lvl)+' уровень, здоровье: '+str(self.health))
+        print('в руке: ', end='')
+        self.arm.show(self.arm.lvl)
+        print('на голове: ', end='')
+        self.head.show(self.head.lvl)
+        print('на теле: ', end='')
+        self.body.show(self.body.lvl)
+        print('в инвентаре: ',end='')
+        self.inventory.show(self.inventory.lvl)
+
+pass
+#----------------------------------------------------------------------------------------------------------------------
+class Quest:
+    type=1 #1 - если квест доступен 2 - если квест выполняется 3- если квест отклонен
+    name=''
+    number=0
+    reward=0
+
+    def creating(self):
+        quest_target=Enemy()
+        quest_target.naming()
+        self.name=quest_target.clas
+        self.number=r.randint(1,3)
+        self.reward=(100+r.randint(-25,25))*self.number
+
+    def show(self):
+        if self.type==1:
+            print('- Здраствуй путник! Что будешь пить?',file=sys.stderr)
+            print('Ты знаешь, последнее время здесь развилось много необычных монстров.',file=sys.stderr)
+            print('Кажется, особь этого вида называется ',end='',file=sys.stderr)
+            print(self.name+',')
+            print('но я б даже на них внимания не обратил, если бы они не повадились нападать на моих поситителей.',file=sys.stderr)
+            print('Я заплачу тебе, скажем, ',end='',file=sys.stderr)
+            print(str(self.reward),end='')
+            print(' золотом,',file=sys.stderr)
+            print('если ты убьешь хотя бы ',end='',file=sys.stderr)
+            print(str(self.number),end='')
+            print(' из них.',file=sys.stderr)
+            print('Ну как, возьмешься?',file=sys.stderr)
+        if self.type==2:
+            print('- А, привет! Ты еще не забыл мою просьбу? ',file=sys.stderr)
+            print('Ты должен убить монстра, по имени',end='',file=sys.stderr)
+            print(self.name,end='')
+            print('в количестве ',end='',file=sys.stderr)
+            print(str(self.number),end='')
+            print('.',file=sys.stderr)
+            print('за это я заплачу тебе ',end='',file=sys.stderr)
+            print(str(self.reward),end='')
+            print(' золотом',file=sys.stderr)
+        if self.type==3:
+            print('- Извини, друг, на сегодня заданий нет',file=sys.stderr)
+#------------------------------------------------------------------------------------------------------------------------------
+class Tavern:
+    timer=0
+    lvl=0
+    quest=Quest()
+    quest_is_ready=True
+
+    shop=[]
+    story=''
+#==============
+    def creating_shop(self):
+        for i in range(r.randint(4,6)):
+            item=Item()
+            if self.lvl == 1:
+                item.creating(r.randint(self.lvl,self.lvl+2),type_of_item[r.randint(0,len(type_of_item)-1)])
+            else:
+                item.creating(r.randint(self.lvl-1, self.lvl + 3), type_of_item[r.randint(0, len(type_of_item) - 1)])
+            self.shop.append(item)
+#==============
+    def show_shop(self):
+        if len(self.shop)!=0:
+            for i in range(len(self.shop)):
+                print(str(i+1)+' ',end='')
+                self.shop[i].show(self.lvl)
+        else:
+            print('магазин пуст')
+#=============
+    def remove_shop(self):
+        shop_new=[]
+        i=0
+        while i<len(self.shop):
+            if self.shop[i].type!='':
+                shop_new.append(self.shop[i])
+                i+=1
+            else:
+                i+=1
+        self.shop=shop_new
+
+
+
+#=============
+    def creating_story(self):
+        chance=r.randint(0,len(self.shop)-1)
+        from1=['из разговора двух посетителей вы услышали, что','от трактирщика вы узнали, что','на доске объявлений вы прочитали, что']
+        what=['в округе недавно появился '+str(self.quest.name),'у торговца сегодня можо найти предмет, под названием '+str(self.shop[chance].name)+
+              ' '+str(self.shop[chance].lvl)+' уровня','ничего интересного не происходит','король опять повысил налоги']
+        self.story=from1[r.randint(0,len(from1)-1)]+' '+what[r.randint(0,len(what)-1)]
+#===============
+    def creating(self,lvl):
+        if self.timer==0:
+            self.lvl=lvl
+            if self.quest_is_ready:
+                self.quest.creating()
+            if self.quest.type==3:
+                self.quest.type=1
+            self.creating_shop()
+            self.creating_story()
+            print('вы вошли в таверну')
+            print(self.story)
+            self.timer=2
+        else:
+            self.creating_story()
+            print('вы вошли в таверну')
+            print(self.story)
+#=================
+    def taking_quest(self,hero):
+        print('трактирщик заговорил с вам')
+        if hero.quest!='' and hero.quest_counter==0:
+            print('Здраствуй, искатель приключений! Благодарю, что выполнил мое поручение!',file=sys.stderr)
+            print('вот твои ',end='',file=sys.stderr)
+            print(str(self.quest.reward),end='')
+            print(' золотых!',file=sys.stderr)
+            hero.gold+=self.quest.reward
+            exp=hero.lvl*r.randint(7,13)*self.quest.number
+            print('вы получили '+str(exp)+' exp')
+            hero.exp+=exp
+            self.quest_is_ready=True
+            self.quest.type=1
+            hero.quest=''
+
+        else:
+            if not self.quest_is_ready or (self.quest.type==3):
+                self.quest.show()
+
+            else:
+                if self.quest_is_ready and self.quest.type!=3:
+                    self.quest.show()
+                    print('[1] - чтобы принять задание, [2] - чтобы его отклонить')
+                    if action([1,2])==1:
+                        print('вы приняли это поручение')
+                        self.quest_is_ready=False
+                        hero.quest=self.quest.name
+                        hero.quest_counter=self.quest.number
+                        self.quest.type=2
+                    else:
+                        print('вы отклонили это поручение')
+                        self.quest.type=3
+#=================
+    def talk_to_host(self, hero):
+        cost = r.randint(1, 3)
+        print('вы подошли к стойке')
+        print('выпивка стоит ' + str(cost) + ' золотых')
+        move = 0
+        while move != 3:
+            print('[1] - поговорить с трактирщиком, [2] - выпить [3] - отойти от стойки')
+            print('ваша голда: '+str(hero.gold))
+            move = action([1, 2, 3])
+            if move == 1:
+                self.taking_quest(hero)
+            else:
+                if move == 2 and hero.gold >= cost:
+                    heal = hero.lvl + r.randint(5, 8)
+                    if hero.max_health - hero.health >= heal:
+                        print('вы выпили и восстановили себе ' + str(heal) + ' здоровья')
+                        hero.health += heal
+                        print('ваше здоровье: ' + str(hero.health))
+                    else:
+                        print('вы выпили и восстановили себе ' + str(hero.max_health - hero.health) + ' здоровья')
+                        hero.health = hero.max_health
+                        print('ваше здоровье: ' + str(hero.health))
+                    hero.gold -= cost
+                    print('ваша голда: ' + str(hero.gold))
+                else:
+                    if move == 2 and hero.gold < cost:
+                        print('недостаточно средств')
+                    else:
+                        if move == 3:
+                            print('вы отошли от стойки')
+#===========
+    def shopping(self,hero):
+        move1=0
+        while move1!=3:
+            self.show_shop()
+            print('[1] - покупать [2] - продавать [3] - отойти от торговца')
+            move1=action([1,2,3])
+            if move1==1:
+                print('ваша голда: '+str(hero.gold))
+                print('выберите предмет, [0] - назад')
+                mass=[]
+                for i in range(len(self.shop)):
+                    mass.append(i+1)
+                mass.append(0)
+                move2=action(mass)
+                if (move2!=0) and (self.shop[move2-1].cost>hero.gold):
+                    print('недостаточно средств')
+                else:
+                    if (move2!=0) and (self.shop[move2-1].cost<=hero.gold):
+                        hero.show()
+                        print('выберите ячейку')
+                        move3=action([4,5,6,7,8])
+                        if hero.inventory[move3-4].type=='':
+                            hero.inventory[move3-4],self.shop[move2-1]=self.shop[move2-1],hero.inventory[move3-4]
+                            hero.gold-=hero.inventory[move3-4].cost
+                            self.remove_shop()
+                        else:
+                            print('в этой ячейке уже есть предмет')
+            else:
+                if move1==2:
+                    move2=-1
+                    while move2!=0:
+                        hero.show()
+                        print('выберите предмет на продажу, [0] - назад')
+                        move2=action([4,5,6,7,8,0])
+                        if (move2!=0) and (hero.inventory[move2-4].type!=''):
+                            self.shop.append(hero.inventory[move2-4].copy())
+                            hero.gold+=hero.inventory[move2-4].cost
+                            hero.inventory[move2-4].type=''
+                            self.show_shop()
+                            print()
+                        else:
+                            if (move2!=0) and (hero.inventory[move2-4].type==''):
+                                print('в этой ячейке нет предмета')
+                else:
+                    if move1==3:
+                        print('вы отошли от торговца')
+#==========
+    def coming(self,hero):
+        move=0
+        self.creating(hero.lvl)
+        while move!=3:
+            print('[1] - подойти к стойке [2] - поговорить с торговцем [3] - выйти из таверны')
+            move=action([1,2,3])
+            if move==1:
+                self.talk_to_host(hero)
+            else:
+                if move==2:
+                    self.shopping(hero)
+                else:
+                    if move==3:
+                        print('вы вышли из таверны')
+#=========================================================================================================================
+#========================================================================================================================
+#=======================================================================================================================
+def action(mass):
+    wrong_action = True
+    while wrong_action:
+        try:
+            action = int(input())
+            wrong_action = False
+        except ValueError:
+            print('выберите число')
+            wrong_action=True
+        if wrong_action == False:
+            try:
+                b=mass.index(action)
+            except ValueError:
+                wrong_action = True
+                print('неверно введен номер')
+    return(action)
+#-------------------------------------------------------------------------------------------------------
+def walking(hero):
+    global find_something
+    print('вы вышли погулять по городу')
+    if find_something:
+        find_somethinf=False
+        plase1=['под камнем','в мусорной куче','на земле','под деревом']
+        plase2=['возле таверны','рядом с аукционом','в саду','у главной дороге','на входе в город']
+        print(plase1[r.randint(0,len(plase1)-1)]+' '+plase2[r.randint(0,len(plase2)-1)])
+        what=r.randint(1,2)
+        if what==1:
+            gold=r.randint(5,20)
+            hero.gold+=gold
+            print('вы нашли '+str(gold)+' золотых')
+            print('ваша голда: '+str(hero.gold))
+        else:
+            if what==2:
+                poution=Item()
+                if hero.lvl==1 or hero.lvl==2 or hero.lvl==3 or hero.lvl==4 or hero.lvl==5 or hero.lvl==6:
+                    poution.creating(1,type_of_item[r.randint(3,4)])
+                else:
+                    poution.creating(hero.lvl-r.randint(3,5),type_of_item[r.randint(3,4)])
+                print('вы нашли')
+                print()
+                poution.show(hero.lvl)
+                hero.show()
+                print('выберите ячейку, в которую хотите поместить его, [0] - выкинуть')
+                move=action([0,4,5,6,7,8])
+                if move!=0:
+                    hero.inventory[move-4]=poution
+                else:
+                    if move==0:
+                        print('вы выкинули')
+                        poution.show(hero.lvl)
+                        print()
+    else:
+        print('вы ничего не нашли')
+#--------------------------------------------------------------------------------------------------------
+def rearming(hero):
+    move1=-1
+    print('вы сели на камень и принялись рассматривать снаряжеие')
+    while move1!=0:
+        hero.show()
+        print()
+        print('выберите предмет. [1] - в руке,  [2] - на голове,  [3] - на теле,  [0] - встать с камня')
+        mass=[]
+        if hero.arm.type!='':
+            mass.append(1)
+        if hero.body.type!='':
+            mass.append(3)
+        if hero.head.type!='':
+            mass.append(2)
+        for i in range(len(hero.inventory)):
+            if hero.inventory[i].type!='':
+                mass.append(i+4)
+        mass.append(0)
+        move1=action(mass)
+        if move1==1:
+            print('выбеите ячейку, в которую хотите поместить ',end='')
+            hero.arm.show(hero.lvl)
+            print('[9] - выкинуть, [0] - назад ')
+            mass=[]
+            for i in range(len(hero.inventory)):
+                if hero.inventory[i].type=='' or (hero.inventory[i].type=='wearpon' and hero.inventory[i].lvl<=hero.lvl):
+                    mass.append(i+4)
+            mass.append(9)
+            mass.append(0)
+            move2=action(mass)
+            if move2!=0 and move2!=9:
+                hero.arm,hero.inventory[move2-4]=hero.inventory[move2-4],hero.arm
+            else:
+                if move2==9:
+                    hero.arm.type=''
+        else:
+            if move1==2:
+                print('выбеите ячейку, в которую хотите поместить ', end='')
+                hero.head.show(hero.lvl)
+                print('[9] - выкинуть, [0] - назад ')
+                mass = []
+                for i in range(len(hero.inventory)):
+                    if hero.inventory[i].type == '' or (hero.inventory[i].type=='equip_top' and hero.inventory[i].lvl<=hero.lvl):
+                        mass.append(i + 4)
+                mass.append(9)
+                mass.append(0)
+                move2 = action(mass)
+                if move2 != 0 and move2 != 9:
+                    hero.head, hero.inventory[move2 - 4] = hero.inventory[move2 - 4], hero.head
+                else:
+                    if move2 == 9:
+                        hero.head.type = ''
+            else:
+                if move1==3:
+                    print('выбеите ячейку, в которую хотите поместить ', end='')
+                    hero.body.show(hero.lvl)
+                    print('[9] - выкинуть, [0] - назад ')
+                    mass = []
+                    for i in range(len(hero.inventory)):
+                        if hero.inventory[i].type == '' or (hero.inventory[i].type=='equip_bot' and hero.inventory[i].lvl<=hero.lvl):
+                            mass.append(i + 4)
+                    mass.append(9)
+                    mass.append(0)
+                    move2 = action(mass)
+                    if move2 != 0 and move2 != 9:
+                        hero.body, hero.inventory[move2 - 4] = hero.inventory[move2 - 4], hero.body
+                    else:
+                        if move2 == 9:
+                            hero.body.type = ''
+                else:
+                    if move1 in (4,5,6,7,8):
+                        print('выбеите ячейку, в которую хтите поместить ',end='')
+                        hero.inventory[move1-4].show(hero.lvl)
+                        mass=[0,9]
+                        if hero.inventory[move1-4].type=='wearpon' and hero.inventory[move1-4].lvl<=hero.lvl:
+                            print('[1] - взять в руку, [9] - выкинуть, [0] - назад')
+                            mass.append(1)
+                        else:
+                            if hero.inventory[move1-4].type=='equip_top' and hero.inventory[move1-4].lvl<=hero.lvl:
+                                print('[2] - надеть на голову, [9] - выкинуть, [0] - назад')
+                                mass.append(2)
+                            else:
+                                if hero.inventory[move1-4].type=='equip_bot' and hero.inventory[move1-4].lvl<=hero.lvl:
+                                    print('[3] - надеть на тело, [9] - выкинуть, [0] - назад')
+                                    mass.append(3)
+                                else:
+                                    print('[9] - выкинуть, [0] - назад')
+                        for i in range(len(hero.inventory)):
+                            if i!=move1-4:
+                                mass.append(i+4)
+                        move2=action(mass)
+                        if move2==1:
+                            hero.arm, hero.inventory[move1 - 4] = hero.inventory[move1 - 4], hero.arm
+                        else:
+                            if move2==2:
+                                hero.head, hero.inventory[move1 - 4] = hero.inventory[move1 - 4], hero.head
+                            else:
+                                if move2==3:
+                                    hero.body, hero.inventory[move1 - 4] = hero.inventory[move1 - 4], hero.body
+                                else:
+                                    if move2!=0 and move2!=9:
+                                        hero.inventory[move1-4],hero.inventory[move2-4]=hero.inventory[move2-4],hero.inventory[move1-4]
+                                    else:
+                                        if move2==9:
+                                            hero.inventory[move1-4].type=''
+                    else:
+                        print('вы поднялись с камня')
+#----------------------------------------------------------------------------------------------------------
+def battle(hero):
+    is_battle=True
+    enemy=Enemy()
+    enemy.creating(hero.lvl)
+    print('вы встретили:')
+    enemy.show()
+    print('[1] - биться, [2] - отступить')
+    choose=action([1,2])
+    if choose==2:
+        print('вы сбежали')
+        is_battle=False
+    else:
+        is_enemy_turn=False
+        for i in range(len(hero.skill_list)):
+            hero.skill_list[i].cooldown=0
+        enemy_def=0
+        if enemy.head.type!='':
+            enemy_def+=enemy.head.power
+        if enemy.body.type!='':
+            enemy_def+=enemy.body.power
+        hero_def=0
+        if hero.head.type!='':
+            hero_def+=hero.head.power
+        if hero.body.type!='':
+            hero_def+=hero.body.power
+        while hero.health>0 and enemy.health>0:
+            if is_enemy_turn and (hero.max_mana-hero.mana<=round((hero.max_mana/100)*5)):
+                hero.mana=hero.max_mana
+            else:
+                if is_enemy_turn:
+                    hero.mana+=round((hero.max_mana/100)*5)
+            if is_enemy_turn:
+                for i in range(len(hero.skill_list)):
+                    if hero.skill_list[i].cooldown!=0:
+                        hero.skill_list[i].cooldown-=1
+            is_enemy_turn=False
+            print('выбирите действие, [0] - атака оружием, [9] - показать персонажей')
+            mass=[0,9]
+            for i in range(len(hero.skill_list)):
+                if (hero.skill_list[i].type=='dmg' or (hero.skill_list[i].type=='heal' and hero.health!=hero.max_health)) and hero.skill_list[i].mana_cost<=hero.mana and hero.skill_list[i].cooldown==0:
+                    mass.append(i+1)
+            for i in range(len(hero.inventory)):
+                if ((hero.inventory[i].type=='poution_hp' and hero.health!=hero.max_health) or (hero.inventory[i].type=='poution_mp' and hero.mana!=hero.max_mana)) and (hero.inventory[i].lvl<=hero.lvl):
+                    mass.append(i+4)
+            hit=action(mass)
+            if hit==9:
+                enemy.show()
+                print()
+                hero.show()
+                is_enemy_turn=False
+            else:
+                if hit==0:
+                    if hero.arm.type!='':
+                        dmg = r.randint(hero.arm.power-hero.arm.lvl,hero.arm.power+hero.arm.lvl)
+                        dmg-=round((dmg/100)*enemy_def)
+                    else:
+                        dmg =1
+                    print('вы атакуете на ',end='')
+                    print(str(dmg),end='',file=sys.stderr)
+                    print(' используя ', end='')
+                    if hero.arm.type!='':
+                        hero.arm.show(hero.lvl)
+                    else:
+                        print('руку 1-1')
+                    enemy.health-=dmg
+                    print('задоровье '+enemy.name+': '+str(enemy.health))
+                    if enemy.health>0:
+                        is_enemy_turn=True
+                    else:
+                        is_enemy_turn=False
+                else:
+                    if (hit in (1,2,3)) and (hero.skill_list[hit-1].type=='heal'):
+                        print('вы применяете способность ',end='')
+                        hero.skill_list[hit-1].show('blue')
+                        print()
+                        if hero.max_health-hero.health<=hero.skill_list[hit-1].power:
+                            hero.health=hero.max_health
+                        else:
+                            hero.health+=hero.skill_list[hit-1].power
+                        hero.mana-=hero.skill_list[hit-1].mana_cost
+                        print('ваше здоровье: '+str(hero.health))
+                        print('ваша мана: '+str(hero.mana))
+                        hero.skill_list[hit-1].cooldown = hero.skill_list[hit-1].max_cooldown
+                        is_enemy_turn=False
+                    else:
+                        if (hit in (1, 2, 3)) and (hero.skill_list[hit - 1].type == 'dmg'):
+                            print('вы применяете способность ', end='')
+                            hero.skill_list[hit - 1].show('blue')
+                            print()
+                            enemy.health -= hero.skill_list[hit-1].power
+                            print('задоровье ' + enemy.name + ': ' + str(enemy.health))
+                            hero.skill_list[hit - 1].cooldown = hero.skill_list[hit-1].max_cooldown
+                            hero.mana-=hero.skill_list[hit-1].mana_cost
+                            print('ваша мана: '+str(hero.mana))
+                            if enemy.health > 0:
+                                is_enemy_turn = True
+                            else:
+                                is_enemy_turn = False
+                        else:
+                            if (hit in (4,5,6,7,8)):
+                                print('вы пьете: ',end='')
+                                hero.inventory[hit-4].show(hero.lvl)
+                                if hero.inventory[hit-4].type=='poution_hp':
+                                    if hero.max_health - hero.health <= hero.inventory[hit - 4].power:
+                                        hero.health = hero.max_health
+                                    else:
+                                        hero.health += hero.inventory[hit - 4].power
+                                    print('ваше здоровье: ' + str(hero.health))
+                                else:
+                                    if hero.max_mana - hero.mana <= hero.inventory[hit - 4].power:
+                                        hero.mana = hero.max_mana
+                                    else:
+                                        hero.mana += hero.inventory[hit - 4].power
+                                    print('ваша мана: ' + str(hero.mana))
+                                hero.inventory[hit-4].type=''
+                                is_enemy_turn=False
+            if is_enemy_turn:
+                dmg = r.randint(enemy.arm.power - enemy.arm.lvl, enemy.arm.power + enemy.arm.lvl)
+                dmg-=round((dmg/100)*hero_def)
+                print(str(enemy.name)+' атакует на ', end='')
+                print(str(dmg), end='', file=sys.stderr)
+                print(' используя ', end='')
+                enemy.arm.show(hero.lvl)
+                hero.health -= dmg
+                print('ваше здоровье: ' + str(hero.health))
+        if hero.health>0:
+            print('вы победили')
+            print('вы получили '+str(enemy.exp)+' опыта и '+str(enemy.gold)+ ' золота')
+            hero.gold+=enemy.gold
+            hero.exp+=enemy.exp
+            if hero.exp>=hero.max_exp:
+                hero.lvl_up()
+            if enemy.loot.type=='':
+                print('с '+enemy.name+' не выпало ничего')
+            else:
+                print('с '+enemy.name+' выпал ',end='')
+                enemy.loot.show(hero.lvl)
+                hero.show()
+                print('выберите ячейку, в которую вы хотите поместить это, [0] - выкинуть')
+                move=action([4,5,6,7,8,0])
+                if move!=0:
+                    hero.inventory[move-4]=enemy.loot.copy()
+            if enemy.clas==hero.quest and hero.quest_counter!=0:
+                hero.quest_counter-=1
+                if hero.quest_counter==0:
+                    print('вы выполнили квест')
+    return is_battle
+#--------------------------------------------------------------------------------------------------------
+def being_in_town(hero,tavern):
+    while hero.health>0:
+        print('[1] - отправиться на встречу приключениям [2] - пойти в таверну [3] - перебрать инвентарь [4] - прогуляться по улицам')
+        move=action([1,2,3,4])
+        if move==2:
+            tavern.coming(hero)
+        else:
+            if move==4:
+                walking(hero)
+            else:
+                if move==3:
+                    rearming(hero)
+                else:
+                    if battle(hero):
+                        tavern.timer-=1
+                        find_something=True
+    print('ВЫ МЕРТВЫ. конец игры')
+you=Hero()
+print('введите имя вашего героя')
+name=input()
+you.creating(name)
+tavern=Tavern()
+being_in_town(you,tavern)
